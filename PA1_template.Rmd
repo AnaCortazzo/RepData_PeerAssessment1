@@ -1,21 +1,83 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "Reproducible Research: Course Project 1"
+author: "Ana Cortazzo"
 output: 
-  html_document:
-    keep_md: true
+    html_document:
+        keep_md: true
 ---
+## Introduccion
+
+This analysis uses data from a personal activity tracking device. This device collects data at 5-minute intervals throughout the day. The data consists of two months of data from an anonymous anonymous individual collected during the months of October and November 2012 and includes the number of steps taken at 5-minute intervals each day.
+
+### Data
+The variables included in this dataset are:
+
+* **steps**: Number of steps taking in a 5-minute interval (missing
+    values are coded as `NA`)
+
+* **date**: The date on which the measurement was taken in YYYY-MM-DD
+    format
+
+* **interval**: Identifier for the 5-minute interval in which
+    measurement was taken
 
 
 ## Loading and preprocessing the data
 
+First we load the necessary packages, in this case data.table. Verify that the data is in the working directory.
+```{r}
+# load packages
+library(data.table)
+unzip("activity.zip")
+activity <- fread("activity.csv", sep = ",", 
+                  col.names = c("steps", "date", "interval"))
+str(activity)
+```
 
 
 ## What is mean total number of steps taken per day?
+For this part, ignore the missing values in the dataset.
 
+#### 1. Histogram of the total number of steps taken each day
+```{r echo=TRUE, message=FALSE}
+#load packages
+library(dplyr)
+```
+```{r}
+#calculate total number of steps per day
+data <- activity %>% group_by(date) %>% summarize(total_steps = sum(steps, na.rm = FALSE))
+head(data)
+
+```
+
+```{r}
+library(ggplot2)
+
+#histogram
+#qplot(total_steps, data = data) + 
+ggplot(data = data, aes(x = total_steps)) +
+   geom_histogram(fill = "aquamarine3") + 
+    labs(title = "Total number of steps per day", x = "Total steps", y = "Frequency")
+```
+
+
+#### 2. **Mean** and **median** total number of steps taken per day
+
+
+```{r}
+mean_media <- summary(data$total_steps)
+```
+
+The **mean** total number of steps taken per day in $`r as.integer(mean_media[4])`$ and **median** is $`r as.integer(mean_media[3])`$.
 
 
 ## What is the average daily activity pattern?
 
+#### 1. Average number of steps in each interval per day
+
+```{r}
+
+```
 
 
 ## Imputing missing values
@@ -23,3 +85,13 @@ output:
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+
+
+### Session info
+```{r}
+sessionInfo()
+```
+
+
