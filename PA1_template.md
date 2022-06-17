@@ -77,7 +77,6 @@ head(data)
 library(ggplot2)
 
 #histogram
-#qplot(total_steps, data = data) + 
 ggplot(data = data, aes(x = total_steps)) +
    geom_histogram(fill = "aquamarine3") + 
     labs(title = "Total number of steps per day", x = "Total steps", y = "Frequency")
@@ -107,6 +106,58 @@ The **mean** total number of steps taken per day in $10766$ and **median** is $1
 
 ## What is the average daily activity pattern?
 
+#### 1. Average number of steps in each interval per day
+
+
+
+```r
+ave_steps_interval <- activity %>% select(date, interval, steps) %>% 
+    group_by(interval) %>% summarize(ave_steps = mean(steps, na.rm = TRUE))
+head(ave_steps_interval)    
+```
+
+```
+## # A tibble: 6 × 2
+##   interval ave_steps
+##      <int>     <dbl>
+## 1        0    1.72  
+## 2        5    0.340 
+## 3       10    0.132 
+## 4       15    0.151 
+## 5       20    0.0755
+## 6       25    2.09
+```
+
+#### Plot of average steps for interval
+
+Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+
+```r
+ggplot(data = ave_steps_interval, aes(interval, ave_steps)) +
+    geom_line(color = "red") +
+    labs(title = "Average steps per interval", x = "Interval", y ="Average steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+#### Maximum number of steps in an interval
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+
+```r
+max_ave_steps <- filter(ave_steps_interval, ave_steps == max(ave_steps))
+max_ave_steps
+```
+
+```
+## # A tibble: 1 × 2
+##   interval ave_steps
+##      <int>     <dbl>
+## 1      835      206.
+```
+The maximum average number of steps (with a value $206$) occurs in the interval
 
 
 ## Imputing missing values
