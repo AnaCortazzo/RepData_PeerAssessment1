@@ -5,7 +5,7 @@ output:
     html_document:
         keep_md: true
 ---
-## Introduccion
+## Introduction
 
 This analysis uses data from a personal activity tracking device. This device collects data at 5-minute intervals throughout the day. The data consists of two months of data from an anonymous anonymous individual collected during the months of October and November 2012 and includes the number of steps taken at 5-minute intervals each day.
 
@@ -56,8 +56,8 @@ library(dplyr)
 
 ```r
 #calculate total number of steps per day
-data <- activity %>% group_by(date) %>% summarize(total_steps = sum(steps, na.rm = FALSE))
-head(data)
+steps_day <- activity %>% group_by(date) %>% summarize(total_steps = sum(steps, na.rm = FALSE))
+head(steps_day)
 ```
 
 ```
@@ -77,7 +77,7 @@ head(data)
 library(ggplot2)
 
 #histogram
-ggplot(data = data, aes(x = total_steps)) +
+ggplot(data = steps_day, aes(x = total_steps)) +
    geom_histogram(fill = "aquamarine3") + 
     labs(title = "Total number of steps per day", x = "Total steps", y = "Frequency")
 ```
@@ -98,7 +98,7 @@ ggplot(data = data, aes(x = total_steps)) +
 
 
 ```r
-mean_media <- summary(data$total_steps)
+mean_media <- summary(steps_day$total_steps)
 ```
 
 The **mean** total number of steps taken per day in $10766$ and **median** is $10765$.
@@ -128,7 +128,7 @@ head(ave_steps_interval)
 ## 6       25    2.09
 ```
 
-#### Plot of average steps for interval
+#### 2. Plot of average steps for interval
 
 Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
@@ -141,7 +141,7 @@ ggplot(data = ave_steps_interval, aes(interval, ave_steps)) +
 
 ![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-#### Maximum number of steps in an interval
+#### 3. Maximum number of steps in an interval
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
@@ -157,15 +157,177 @@ max_ave_steps
 ##      <int>     <dbl>
 ## 1      835      206.
 ```
-The maximum average number of steps (with a value $206$) occurs in the interval
+The maximum average number of steps (206 steps) occurs in the interval 835.
 
 
 ## Imputing missing values
 
+#### 1. Number of NA's in the dataset
+
+
+```r
+data_Na <- activity %>% filter(is.na(steps) == TRUE)
+```
+
+The total number of NA's in original dataset is 2304.
+
+#### 2. Filling missing values and create a new dataset
+
+The strategy used to fill the NAs was to consider the average number of steps per 5-minute interval.
+
+
+```r
+new_data <- activity %>%  group_by(interval) %>% 
+    mutate(steps = ifelse(is.na(steps), mean(steps, na.rm=TRUE), steps))
+```
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+
+```r
+fwrite(x = new_data, file = "tidyData.csv", quote = FALSE)
+head(new_data)
+```
+
+```
+## # A tibble: 6 × 3
+## # Groups:   interval [6]
+##    steps date       interval
+##    <dbl> <date>        <int>
+## 1 1.72   2012-10-01        0
+## 2 0.340  2012-10-01        5
+## 3 0.132  2012-10-01       10
+## 4 0.151  2012-10-01       15
+## 5 0.0755 2012-10-01       20
+## 6 2.09   2012-10-01       25
+```
+
+
+#### 3. Histogram  of the total number of steps taken each day
+
+Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+
+```r
+#calculate total number of steps per day without NA
+steps_day2 <- new_data %>% group_by(date) %>% summarize(total_steps = sum(steps, na.rm = FALSE))
+
+#histogram
+ggplot(data = steps_day2, aes(x = total_steps)) +
+   geom_histogram(fill = "aquamarine4") + 
+    labs(title = "Total number of steps per day (whithout NA values)", x = "Total steps", y = "Frequency")
+```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+
+
+```r
+mean_media2 <- summary(steps_day2$total_steps)
+```
+The **mean** total number of steps taken per day in $10766$ and **median** is $10766$. Comparing the results obtained with the values obtained from the data with NA we see that there is no significant difference; including values in the NA with the selected strategy made the mean and median acquire the same value. 
+
+
+```r
+rbind(mean_media, mean_media2)
+```
+
+```
+## Warning in rbind(mean_media, mean_media2): number of columns of result is not a
+## multiple of vector length (arg 2)
+```
+
+```
+##             Min. 1st Qu.   Median     Mean 3rd Qu.  Max. NA's
+## mean_media    41    8841 10765.00 10766.19   13294 21194    8
+## mean_media2   41    9819 10766.19 10766.19   12811 21194   41
+```
+We can compare the two histograms to see the difference
+
+
+```r
+library(patchwork)
+
+p1 <- ggplot(data = steps_day, aes(x = total_steps)) +
+   geom_histogram(fill = "aquamarine3") + 
+    labs(title = "Total number of steps per day", x = "Total steps", y = "Frequency")
+
+p2 <- ggplot(data = steps_day2, aes(x = total_steps)) +
+   geom_histogram(fill = "aquamarine4") + 
+    labs(title = "Total number of steps per day (whithout NA values)", x = "Total steps", y = "Frequency")
+
+p1+p2
+```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+```
+## Warning: Removed 8 rows containing non-finite values (stat_bin).
+```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+#### 1. Separating between weekend and weekdays
+Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+
+```r
+new_data <- new_data %>% mutate(week_day = weekdays(date)) %>% 
+    mutate(factor_week = as.factor(if_else(week_day %in% c("sábado", "domingo"), "weekend", "weekday")))
+head(new_data)
+```
+
+```
+## # A tibble: 6 × 5
+## # Groups:   interval [6]
+##    steps date       interval week_day factor_week
+##    <dbl> <date>        <int> <chr>    <fct>      
+## 1 1.72   2012-10-01        0 lunes    weekday    
+## 2 0.340  2012-10-01        5 lunes    weekday    
+## 3 0.132  2012-10-01       10 lunes    weekday    
+## 4 0.151  2012-10-01       15 lunes    weekday    
+## 5 0.0755 2012-10-01       20 lunes    weekday    
+## 6 2.09   2012-10-01       25 lunes    weekday
+```
+#### 2. Plot average number of steps per interval in weekend or weekday
+
+Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+
+```r
+#calculate average steps in each interval for weekend and weekdy
+ave_steps_interval2 <- new_data %>% select(interval, steps, factor_week) %>% 
+    group_by(interval, factor_week) %>% summarize(ave_steps = mean(steps, na.rm = TRUE))
+```
+
+```
+## `summarise()` has grouped output by 'interval'. You can override using the
+## `.groups` argument.
+```
+
+```r
+# panel plot
+ggplot(data = ave_steps_interval2, aes(interval, ave_steps, color = factor_week)) +
+    facet_grid(factor_week~.) +
+    geom_line() +
+    theme(legend.position="none") +
+    labs(title = "Average steps per interval on weekdays and weekends", x = "Interval", y ="Average steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
 
 
@@ -196,7 +358,7 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] ggplot2_3.3.6     dplyr_1.0.9       data.table_1.14.2
+## [1] patchwork_1.1.1   ggplot2_3.3.6     dplyr_1.0.9       data.table_1.14.2
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] highr_0.9        pillar_1.7.0     bslib_0.3.1      compiler_4.1.2  
